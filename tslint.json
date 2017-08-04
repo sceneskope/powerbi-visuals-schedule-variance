@@ -1,0 +1,53 @@
+{
+    "ignoreDefinitionFiles": true,
+    "extends": "tslint:latest",
+    "rulesDirectory": [
+        "node_modules/tslint-microsoft-contrib"
+    ],
+    "rules": {
+        "no-namespace": [
+            false
+        ],
+        "no-internal-module": false,
+        "interface-name": [
+            false
+        ],
+        "one-line": [
+            false
+        ],
+        "align": [
+            false
+        ],
+        "object-literal-sort-keys": [
+            false
+        ],
+        "object-literal-shorthand": false,
+        "trailing-comma": [
+            false
+        ],
+        "max-classes-per-file": [
+            false
+        ],
+        "arrow-parens": false,
+        "no-console": [
+            false
+        ],
+        "member-ordering": [
+            true, 
+            { "order": [
+                "private-static-field",
+                "static-field",
+                "private-instance-field",
+                "constructor"
+            ]}
+            
+        ],
+        "no-unused-expression": [
+            true
+        ],
+        "only-arrow-functions": [
+            false
+        ]
+
+    }
+}

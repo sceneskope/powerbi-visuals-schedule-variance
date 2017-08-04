@@ -1,0 +1,37 @@
+@import (less) "node_modules/powerbi-visuals-utils-interactivityutils/lib/index.css";
+@import (less) "node_modules/powerbi-visuals-utils-formattingutils/lib/index.css";
+
+
+.scheduleVariance {
+    @axesColor: #777777;
+
+    font-family: "Segoe UI", helvetica, arial, sans-serif;
+
+    .axis, .legends, .grid {
+        path, line {
+            fill: none;
+            stroke: @axesColor;
+            shape-rendering: crispEdges;
+        }
+
+        text {
+            fill: @axesColor;
+        }
+    }
+
+    .grid {
+        opacity: 0.7;
+
+        line {
+            stroke-dasharray: 5 5
+        }
+    }
+
+    .legends {
+        text {
+            font-size: 12px;
+            text-anchor: middle;
+        }
+    }
+    
+}
