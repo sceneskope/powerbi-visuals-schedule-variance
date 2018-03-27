@@ -16,6 +16,7 @@ module powerbi.extensibility.visual {
         private static readonly Legends = svgUtils.CssConstants.createClassAndSelector("legends");
         private static readonly ClassName = "scheduleVariance";
 
+        private static ttiInfo = 0;
         private static readonly Config = {
             minWidth: 100,
             minHeight: 100,
@@ -36,11 +37,11 @@ module powerbi.extensibility.visual {
             minValueAxisWidth: 30,
         };
 
-        private viewportIn: IViewport;
-        private viewport: IViewport;
-        private dataViews: DataView[];
-        private xScale: d3.scale.Ordinal<any, any>;
-        private yScale: d3.scale.Ordinal<any, any>;
+        private viewportIn?: IViewport;
+        private viewport?: IViewport;
+        private dataViews?: DataView[];
+        private xScale?: d3.scale.Ordinal<any, any>;
+        private yScale?: d3.scale.Ordinal<any, any>;
 
         private readonly behavior: Behavior;
         private readonly interactivityService: interactivity.IInteractivityService;
@@ -52,14 +53,14 @@ module powerbi.extensibility.visual {
         private readonly xAxis: d3.Selection<SVGGElement>;
         private readonly yAxis: d3.Selection<SVGGElement>;
         private readonly xGrid: d3.Selection<SVGGElement>;
-        private readonly tooltipServiceWrapper: tooltip.ITooltipServiceWrapper;
+        private readonly tooltipService: tooltip.ITooltipServiceWrapper;
         private readonly host: IVisualHost;
         private model?: Model;
         private readonly chart: d3.Selection<SVGGElement>;
 
         constructor(options: VisualConstructorOptions) {
             this.host = options.host;
-            this.tooltipServiceWrapper = tooltip.createTooltipServiceWrapper(
+            this.tooltipService = tooltip.createTooltipServiceWrapper(
                 options.host.tooltipService, options.element);
 
             const rootElement = this.rootElement = d3.select(options.element)
@@ -105,9 +106,12 @@ module powerbi.extensibility.visual {
         }
 
         private updateViewportIn(widthOfValueAxis: number, heightOfCategoryAxis: number, labelHeight: number) {
-            const width = this.viewport.width - widthOfValueAxis;
-            const height = this.viewport.height - heightOfCategoryAxis - labelHeight;
-            this.viewportIn = { height: height, width: width };
+            const viewport = this.viewport;
+            if (viewport) {
+                const width = viewport.width - widthOfValueAxis;
+                const height = viewport.height - heightOfCategoryAxis - labelHeight;
+                this.viewportIn = { height: height, width: width };
+            }
         }
 
         public update(options: VisualUpdateOptions) {
@@ -152,11 +156,13 @@ module powerbi.extensibility.visual {
         }
 
         private transformChartAndAxes(xAdjust: number, yAdjust: number) {
-            const offsetToRightAndDown = svgUtils.translate(xAdjust, yAdjust);
-            this.chart.attr("transform", offsetToRightAndDown);
-            this.axes.attr("transform", offsetToRightAndDown);
-            this.xAxis.attr("transform", svgUtils.translate(0, this.viewportIn.height));
-            this.yAxis.attr("transform", svgUtils.translate(0, 0));
+            if (this.viewportIn) {
+                const offsetToRightAndDown = svgUtils.translate(xAdjust, yAdjust);
+                this.chart.attr("transform", offsetToRightAndDown);
+                this.axes.attr("transform", offsetToRightAndDown);
+                this.xAxis.attr("transform", svgUtils.translate(0, this.viewportIn.height));
+                this.yAxis.attr("transform", svgUtils.translate(0, 0));
+            }
         }
 
         private calculateLabelWidth(value: PrimitiveValue, formatter: formatting.IValueFormatter, fontSize: number) {
@@ -188,8 +194,11 @@ module powerbi.extensibility.visual {
             this.updateViewportIn(widthOfValueLabel, heightOfCategoryLabel, labelHeight);
             this.transformChartAndAxes(widthOfValueLabel, labelHeight);
 
+            const viewportWidth = this.viewportIn && this.viewportIn.width || 1;
+            const viewportHeight = this.viewportIn && this.viewportIn.height || 1;
+
             const yAxis = axisUtils.createAxis({
-                pixelSpan: this.viewportIn.height,
+                pixelSpan: viewportHeight,
                 dataDomain: [model.minY, model.maxY],
                 metaDataColumn: model.valueMetadata,
                 formatString: formatting.valueFormatter.getFormatStringByColumn(model.valueMetadata),
@@ -218,7 +227,7 @@ module powerbi.extensibility.visual {
             }
 
             const xAxis = axisUtils.createAxis({
-                pixelSpan: this.viewportIn.width,
+                pixelSpan: viewportWidth,
                 dataDomain: model.dataPoints.map((_, i) => i),
                 metaDataColumn: model.categoryMetadata,
                 formatString: formatting.valueFormatter.getFormatStringByColumn(model.categoryMetadata),
@@ -234,7 +243,7 @@ module powerbi.extensibility.visual {
             if (model.settings.categoryAxis.show) {
                 const textProperties = ScheduleVariance.getTextProperties(model.settings.categoryAxis.fontSize);
                 const willFit = axisUtils.LabelLayoutStrategy.willLabelsFit(xAxis,
-                    this.viewportIn.width,
+                    viewportWidth,
                     utils.formatting.textMeasurementService.measureSvgTextWidth,
                     textProperties
                 );
@@ -258,7 +267,7 @@ module powerbi.extensibility.visual {
                 }
 
                 const xGrid = yAxis.axis.ticks(yAxis.values.length)
-                    .tickSize(this.viewportIn.width)
+                    .tickSize(viewportWidth)
                     .tickFormat("")
                     .orient("right");
 
@@ -290,7 +299,10 @@ module powerbi.extensibility.visual {
             groups.enter().append("g")
                 .classed("group", true);
 
-            groups.attr("transform", (_, i) => `translate(${this.xScale(i)}, 0)`)
+            const xScale = this.xScale || d3.scale.ordinal<any, any>();
+            const yScale = this.yScale || d3.scale.ordinal<any, any>();
+
+            groups.attr("transform", (_, i) => `translate(${xScale(i)}, 0)`)
                 .attr("fill-opacity", 1);
 
             this.bindSelectionHandler(groups);
@@ -301,13 +313,16 @@ module powerbi.extensibility.visual {
             bars.enter().append("rect")
                 .classed("subbar", true);
 
-            bars.attr("width", this.xScale.rangeBand())
-                .attr("height", dp => this.yScale(dp.minValue) - this.yScale(dp.maxValue))
-                .attr("y", dp => this.yScale(dp.maxValue))
+            bars.attr("width", xScale.rangeBand())
+                .attr("height", dp => yScale(dp.minValue) - yScale(dp.maxValue))
+                .attr("y", dp => yScale(dp.maxValue))
                 .attr("fill", dp => dp.color);
 
-            this.tooltipServiceWrapper.addTooltip<tooltip.TooltipEnabledDataPoint>(
-                this.chart, tte => tte.data.tooltipInfo!);
+            this.tooltipService.addTooltip<DataPoint>(
+                this.chart,
+                tte => tte.data.tooltipInfo!,
+                tte => tte.data.identity,
+                true);
         }
 
         private bindSelectionHandler(columns: d3.selection.Update<DataPoint>) {

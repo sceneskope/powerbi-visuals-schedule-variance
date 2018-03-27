@@ -38,8 +38,8 @@ module powerbi.extensibility.visual {
   export class ValueAxisSettings {
     public show = true;
     public showAxisTitle = false;
-    public maxValue: number|null = null;
-    public minValue: number|null = null;
+    public maxValue: number | null = null;
+    public minValue: number | null = null;
     public displayUnits: number = 0;
     public precision: number = 2;
     public title = "";

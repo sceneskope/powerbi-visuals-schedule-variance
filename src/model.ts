@@ -9,6 +9,7 @@ module powerbi.extensibility.visual {
         minValue: number;
         maxValue: number;
         color: string;
+        tooltipInfo: VisualTooltipDataItem[];
     }
 
     export interface DataPoint extends TooltipEnabledDataPoint, interactivity.SelectableDataPoint {
@@ -90,7 +91,7 @@ module powerbi.extensibility.visual {
         return undefined;
     }
 
-    export function buildModel(dataView: DataView | undefined, host: IVisualHost): Model|undefined {
+    export function buildModel(dataView: DataView | undefined, host: IVisualHost): Model | undefined {
         if (!dataView
             || !hasCategoryAndCentral(dataView)
             || !dataView.categorical
@@ -136,10 +137,14 @@ module powerbi.extensibility.visual {
 
         const defaultColor = host.colorPalette.getColor("bar").value;
 
+        const formatter = formatting.valueFormatter.create({
+            format: formatting.valueFormatter.getFormatStringByColumn(category.source)
+        });
         const dataPoints: DataPoint[] = category.values.map((value, index) => {
             const ranges: DataRange[] = [];
             const tooltips: VisualTooltipDataItem[] = [];
-            tooltips.push({ displayName: category.source.displayName, value: value as string });
+
+            tooltips.push({ displayName: category.source.displayName, value: formatter.format(value) });
 
             const upperValue = tryGetValue(index, upperLimitIndex, tooltips);
             const upperCoreValue = tryGetValue(index, upperCoreIndex, tooltips);

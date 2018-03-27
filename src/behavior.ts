@@ -8,31 +8,33 @@ module powerbi.extensibility.visual {
     }
 
     export class Behavior implements interactivity.IInteractiveBehavior {
-        private columns: d3.Selection<DataPoint>;
-        private clearCatcher: d3.Selection<any>;
-        private interactivityService: interactivity.IInteractivityService;
+        private columns?: d3.Selection<DataPoint>;
+        private clearCatcher?: d3.Selection<any>;
+        private interactivityService?: interactivity.IInteractivityService;
 
         public bindEvents(behaviorOptions: BehaviorOptions, selectionHandler: interactivity.ISelectionHandler) {
             this.columns = behaviorOptions.columns;
-            this.interactivityService = behaviorOptions.interactivityService;
+            const interactivityService = this.interactivityService = behaviorOptions.interactivityService;
             this.clearCatcher = behaviorOptions.clearCatcher;
 
             this.columns.on("click", (dataPoint: DataPoint) =>
                 selectionHandler.handleSelection(dataPoint, true));
 
-            this.clearCatcher.on("click", () => this.interactivityService.clearSelection());
+            this.clearCatcher.on("click", () => interactivityService.clearSelection());
         }
 
         public renderSelection(hasSelection: boolean) {
-            const serviceSelection = this.interactivityService.hasSelection();
-            this.columns
-                .attr("fill-opacity", dp => {
-                    if (!serviceSelection || !hasSelection || dp.selected) {
-                        return 1.0;
-                    } else {
-                        return 0.4;
-                    }
-                });
+            if (this.interactivityService && this.columns) {
+                const serviceSelection = this.interactivityService.hasSelection();
+                this.columns
+                    .attr("fill-opacity", dp => {
+                        if (!serviceSelection || !hasSelection || dp.selected) {
+                            return 1.0;
+                        } else {
+                            return 0.4;
+                        }
+                    });
+            }
         }
     }
 }
