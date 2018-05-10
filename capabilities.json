@@ -1,4 +1,14 @@
 {
+    "sorting": {
+        "implicit": {
+            "clauses": [
+                {
+                    "role": "category",
+                    "direction": 1
+                }
+            ]
+        }
+    },
     "dataRoles": [
         {
             "displayName": "Category Data",

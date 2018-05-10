@@ -1,6 +1,6 @@
 {
   "name": "sk-powerbi-schedule-variance",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Power BI Visual to show schedule variance",
   "scripts": {
     "postinstall": "pbiviz update 1.11.0",
@@ -29,11 +29,11 @@
   "devDependencies": {
     "@types/d3": "3.5.38",
     "@types/lodash": "^4.14.50",
-    "powerbi-models": "^1.0.3",
-    "powerbi-visuals-tools": "1.11.2",
+    "powerbi-models": "^1.0.4",
+    "powerbi-visuals-tools": "1.11.3",
     "powerbi-visuals-utils-tooltiputils": "^1.0.0",
-    "tslint": "5.9.1",
+    "tslint": "5.10.0",
     "tslint-microsoft-contrib": "5.0.3",
-    "typescript": "2.7.2"
+    "typescript": "2.8.3"
   }
 }

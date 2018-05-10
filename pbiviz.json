@@ -4,7 +4,7 @@
     "displayName": "Schedule Variance",
     "guid": "scheduleVariance95CD5027073F402AAFC09CB5DD622837",
     "visualClassName": "ScheduleVariance",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Show the schedule variance",
     "supportUrl": "",
     "gitHubUrl": ""
